@@ -1,4 +1,9 @@
+import math
 import random
+
+from src.preprocessor import preprocessor
+
+
 class Ngrams:
     def __init__(self, opts):
         self.n = opts["n"]
@@ -83,9 +88,26 @@ class Ngrams:
             else:
                 return sentence
         return sentence
+
+    def perplexity(self, test_list):
+        PP = 0
+        exponent = 0
+        n = self.n
+        for x in range(0, len(test_list) - n + 1):
+            key = self.to_key(test_list[x: x+n-1]) if n > 1 else self.placeholder
+            target = test_list[i + n - 1]
+            exponent = exponent - math.log(self.lookup_dist(key, target))
+
+        exponent /= (len(test_list) - n + 1.0)
+        PP = math.exp(exponent)
+        return PP
+
 # test cases
-corpus = ["<s> I am Sam </s>".split(" "), "<s> Sam I am </s>".split(" "), "<s> I do not like green eggs and ham </s>".split(" ")]
+# corpus = ["<s> I am Sam </s>".split(" "), "<s> Sam I am </s>".split(" "), "<s> I do not like green eggs and ham </s>".split(" ")]
+# ngram = Ngrams({"n": 2, "threshold": 100})
+# print ngram.dist_table(corpus)
+# print ngram.sentence('I')
+
+data = preprocessor("../Assignment1_resources/train/obama.txt")
 ngram = Ngrams({"n": 2, "threshold": 100})
-print ngram.dist_table(corpus)
-# print ngram.unsmoothed_nGram("<s> I am </s>")
 print ngram.sentence('I')
