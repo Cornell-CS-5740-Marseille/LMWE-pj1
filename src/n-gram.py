@@ -30,7 +30,6 @@ class Ngrams:
     # create the count table with raw frequencies at first
     def dist_table(self, logs):
         n = self.n
-
         # add each occurrance of n-gram into the dictionary. The key is the
         # (n-1)-gram and the value is another dictionary of each words' frequency
         # following that (n-1)-gram
@@ -190,10 +189,11 @@ class Ngrams:
 # print ngram.sentence('I')
 
 data = preprocessor("../Assignment1_resources/train/obama.txt").data
-# print data
+
 ngram = Ngrams({"n": 3, "threshold": 100})
 
-ngram.dist_table_smoothed([data])
-print ngram.smoothed_count_table['and-then']
+ngram.dist_table_smoothed([data[0]])
+print ngram.smoothed_count_table["and-then"]
+
 #ngram.save_model("model/trump")
 #print ngram.sentence('I')
