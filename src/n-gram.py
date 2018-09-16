@@ -20,7 +20,7 @@ class Ngrams:
         self.all_count_symbol = "<a>"  # counter for each key
         self.other_symbol = "<o>"  # unknown n-gram
         self.all_unique_pair_counter = 0  # counter for all n-gram pairs
-        self.discount = 0.02  # discount value to be used in kneser-ney
+        self.discount = 0.1  # discount value to be used in kneser-ney
         self.all_tokens = set({self.start_symbol, self.end_symbol})
         self.smoothed_count_table = {}  # data structure for the smoothed n-gram count;
                                         # dict<string, dict<string, double>>
