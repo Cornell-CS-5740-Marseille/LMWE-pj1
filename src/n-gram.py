@@ -4,6 +4,7 @@ import json
 
 from src.preprocessor import preprocessor
 
+
 class Ngrams:
     # Initialization method
     def __init__(self, opts):
@@ -21,19 +22,20 @@ class Ngrams:
         self.all_unique_pair_counter = 0  # counter for all n-gram pairs
         self.discount = 0.02  # discount value to be used in kneser-ney
         self.all_tokens = set({self.start_symbol, self.end_symbol})
-        self.smoothed_count_table = {}  # data structure for the smoothed n-gram count; dict<string, dict<string, double>>
+        self.smoothed_count_table = {}  # data structure for the smoothed n-gram count;
+                                        # dict<string, dict<string, double>>
         self.reverse_dict = {}
 
     def to_key(self, prefix):               # convert a string to a dictionary key
         return "-".join(prefix)
 
-    # create the count table with raw frequencies at first
-    def dist_table(self, logs):
+    def generate_count_table(self, logs):
         n = self.n
-        # add each occurrance of n-gram into the dictionary. The key is the
+        words = [logs[0]]
+        # add each occurrence of n-gram into the dictionary. The key is the
         # (n-1)-gram and the value is another dictionary of each words' frequency
         # following that (n-1)-gram
-        for log in logs:
+        for log in words:
             for i in range(0, len(log) - n + 1):
                 if n > 1:
                     key = self.to_key(log[i: i + n - 1])
@@ -47,18 +49,37 @@ class Ngrams:
                         self.count_table[key][target] = 1
                 else:
                     self.count_table[key] = {target: 1}
+        return self.count_table
 
+    def convert_count_to_prob(self):
         for key in self.count_table:
             count_dict = self.count_table[key]
             number = reduce((lambda x, y: x + y), count_dict.values())
             for target in count_dict:
                 count_dict[target] /= (number + 0.0)
-
         return self.count_table
 
-    def dist_table_smoothed(self, logs):
+    # create the count table with raw frequencies at first
+    def dist_table_unsmoothed(self, logs):
+        self.generate_count_table(logs)
+        self.convert_count_to_prob()
+        return self.count_table
+
+    def dist_table_add_one_smooth(self, logs, k):
+        self.generate_count_table(logs)
+        for key in self.count_table:
+            for target in logs[2]:
+                if target in self.count_table[key]:
+                    self.count_table[key][target] += k
+                else:
+                    self.count_table[key][target] = k
+        self.convert_count_to_prob()
+        return self.count_table
+
+    def dist_table_smoothed_kneser_ney(self, logs):
+        words = [logs[0]]
         n = self.n
-        for log in logs:
+        for log in words:
             for i in range(0, len(log) - n + 1):
                 if n > 1:
                     key = self.to_key(log[i: i + n - 1])
@@ -94,9 +115,8 @@ class Ngrams:
 
         for key in self.count_table:
             self.smoothed_count_table[key] = {}
-            remaining_prob = 1
             count_dict = self.count_table[key]
-            for target in count_dict:  # yeah i know, this is super slow OMG
+            for target in logs[2]:  # yeah i know, this is super slow OMG
                 if target != self.all_count_symbol:
                     count = 0
                     if target in count_dict:
@@ -110,8 +130,6 @@ class Ngrams:
                     prev = reverse_count / (self.all_unique_pair_counter + 0.0)
                     smoothed_prob = percentage_after_discount + normalized * prev
                     self.smoothed_count_table[key][target] = smoothed_prob
-                    remaining_prob -= smoothed_prob
-            self.smoothed_count_table[key][self.other_symbol] = remaining_prob
         self.count_table = self.smoothed_count_table
         return self.count_table
 
@@ -145,7 +163,6 @@ class Ngrams:
             start = ["<s>"]
         for x in range(0, self.threshold):
             key = self.to_key(start) if self.n > 1 else self.placeholder
-            print "round ", x, key, start
             if key in self.count_table:
                 prob = random.uniform(0, 1)
                 items = self.count_table[key].items()
@@ -155,7 +172,6 @@ class Ngrams:
                         sentence = sentence + " " + target
                         start.append(target)
                         start = start[1:]
-                        print start, sentence
                         break
                     else:
                         lower += probability
@@ -190,10 +206,10 @@ class Ngrams:
 
 data = preprocessor("../Assignment1_resources/train/obama.txt").data
 
-ngram = Ngrams({"n": 3, "threshold": 100})
+ngram = Ngrams({"n": 2, "threshold": 100})
+#ngram.dist_table_smoothed_kneser_ney(data)
+ngram.dist_table_add_one_smooth(data, 1)
+#print ngram.count_table
 
-ngram.dist_table_smoothed([data[0]])
-print ngram.smoothed_count_table["and-then"]
-
-#ngram.save_model("model/trump")
-#print ngram.sentence('I')
+ngram.save_model("model/obama")
+#print ngram.sentence('i')
