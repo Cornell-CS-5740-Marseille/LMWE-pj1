@@ -208,8 +208,8 @@ data = preprocessor("../Assignment1_resources/train/obama.txt").data
 
 ngram = Ngrams({"n": 2, "threshold": 100})
 #ngram.dist_table_smoothed_kneser_ney(data)
-ngram.dist_table_add_one_smooth(data, 1)
+ngram.dist_table_add_one_smooth(data[0], 1)
 #print ngram.count_table
 
-ngram.save_model("model/obama")
+# ngram.save_model("model/obama")
 #print ngram.sentence('i')
