@@ -105,6 +105,11 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+#configures
+.idea/
+
 # Mac
 .DS_Store
 .idea
+.idea/LMWE-pj1.iml
+.idea/inspectionProfiles/
