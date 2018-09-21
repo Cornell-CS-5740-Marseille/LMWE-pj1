@@ -31,7 +31,7 @@ class Ngrams:
 
     def generate_count_table(self, logs):
         n = self.n
-        words = [logs[0]]
+        words = [logs[3]]
         # add each occurrence of n-gram into the dictionary. The key is the
         # (n-1)-gram and the value is another dictionary of each words' frequency
         # following that (n-1)-gram
@@ -73,6 +73,7 @@ class Ngrams:
                     self.count_table[key][target] += k
                 else:
                     self.count_table[key][target] = k
+        print self.count_table
         self.convert_count_to_prob()
         return self.count_table
 
@@ -137,9 +138,14 @@ class Ngrams:
         n = self.n
         key = self.to_key(sequence) if n > 1 else self.placeholder
         if key in self.count_table:
-            return self.count_table[key][target] if target in self.count_table[key] else 0
+            if target in self.count_table[key]:
+                return self.count_table[key][target]
+            else:
+                print "no target:", target
+                return self.count_table[key][self.unknown_symbol]
         else:
-            return 0
+            print "no key:", key
+            return self.count_table[key][self.unknown_symbol]
 
     def unsmoothed_nGram(self, sentence):
         sentence = sentence.split(" ")
@@ -184,10 +190,9 @@ class Ngrams:
         exponent = 0
         n = self.n
         for x in range(0, len(test_list) - n + 1):
-            key = self.to_key(test_list[x: x + n - 1]) if n > 1 else self.placeholder
+            keys = (test_list[x: x + n - 1]) if n > 1 else []
             target = test_list[x + n - 1]
-            if self.lookup_dist(key, target) > 0:
-                exponent = exponent - math.log(self.lookup_dist(key, target))
+            exponent = exponent - math.log(self.lookup_dist(keys, target))
 
         exponent /= (len(test_list) - n + 1.0)
         PP = math.exp(exponent)
@@ -198,12 +203,26 @@ class Ngrams:
         with open(fileName, 'w') as fp:
             json.dump(self.count_table, fp)
 
+
+# test cases
+# corpus = ["<s> I am Sam </s>".split(" "), "<s> Sam I am </s>".split(" "), "<s> I do not like green eggs and ham </s>".split(" ")]
+# ngram = Ngrams({"n": 2, "threshold": 100})
+# print ngram.dist_table(corpus)
+# print ngram.sentence('I')
+
 data = preprocessor("../Assignment1_resources/train/trump.txt").data
-test_data_obama = (preprocessor("../Assignment1_resources/development/obama.txt").data)[0]
-test_data_trump = (preprocessor("../Assignment1_resources/development/trump.txt").data)[0]
-ngram = Ngrams({"n": 1, "threshold": 100})
-#ngram.dist_table_smoothed_kneser_ney(data)
+ngram = Ngrams({"n": 2, "threshold": 100})
+# ngram.dist_table_unsmoothed(data[0])
+# ngram.dist_table_smoothed_kneser_ney(data[0])
 ngram.dist_table_add_one_smooth(data, 1)
-print(ngram.perplexity(test_data_obama))
-print(ngram.perplexity(test_data_trump))
-#print ngram.sentence('i')
+# print data[1]
+# print data[2]
+# print data[3]
+print ngram.count_table
+test = preprocessor("../Assignment1_resources/development/trump.txt").data[0]
+# test = preprocessor("../Assignment1_resources/development/small_test.txt").data[0]
+print ngram.perplexity(test)
+
+
+# ngram.save_model("model/obama")
+# print ngram.sentence('i')

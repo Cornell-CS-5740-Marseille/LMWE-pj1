@@ -6,6 +6,8 @@ class preprocessor:
     def __init__(self, file):
         self.unknown_symbol = "<u>"
         self.unknown_threshold = 1
+        self.start_symbol = "<s>"  # start of document
+        self.end_symbol = "</s>"  # end of document
         with open(file) as f:
             self.data = self.data_processor(f)
 
@@ -22,7 +24,7 @@ class preprocessor:
             line_new = line_new.replace('\' ','\'')
             line_new = line_new.replace('”','\"')
             line_new = line_new.replace('“','\"')
-            line_new = line_new.replace('\n', '')
+            line_new = line_new.replace('\n', self.end_symbol)
             # ls[0] = ls[0].capitalize()
             # for i in range(len(ls)-1):
             #     if ls[i] == '.':
@@ -50,5 +52,6 @@ class preprocessor:
                     dictionary.add(new_word_list)
                     result.append(new_word_list)
         unknown_list = {k:v for k,v in unknown_list.iteritems() if v==self.unknown_threshold}
+        replacement = map(lambda x: self.unknown_symbol if x in unknown_list else x, result)
 
-        return (result, unknown_list, dictionary)
+        return (result, unknown_list, dictionary, replacement)
