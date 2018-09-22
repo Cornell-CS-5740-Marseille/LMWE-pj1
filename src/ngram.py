@@ -1,6 +1,7 @@
 import math
 import random
 import json
+from functools import reduce
 
 from src.preprocessor import preprocessor
 
@@ -210,18 +211,19 @@ class Ngrams:
 # print ngram.dist_table(corpus)
 # print ngram.sentence('I')
 
-data = preprocessor("../Assignment1_resources/train/trump.txt").data
-ngram = Ngrams({"n": 2, "threshold": 100})
+data = preprocessor("../Assignment1_resources/train/trump.txt","../Assignment1_resources/5000.txt",0).data
+print data[0]
+#ngram = Ngrams({"n": 2, "threshold": 100})
 # ngram.dist_table_unsmoothed(data[0])
 # ngram.dist_table_smoothed_kneser_ney(data[0])
-ngram.dist_table_add_one_smooth(data, 1)
+#ngram.dist_table_add_one_smooth(data, 1)
 # print data[1]
 # print data[2]
 # print data[3]
-print ngram.count_table
-test = preprocessor("../Assignment1_resources/development/trump.txt").data[0]
+#print ngram.count_table
+#test = preprocessor("../Assignment1_resources/development/trump.txt").data[0]
 # test = preprocessor("../Assignment1_resources/development/small_test.txt").data[0]
-print ngram.perplexity(test)
+#print ngram.perplexity(test)
 
 
 # ngram.save_model("model/obama")
