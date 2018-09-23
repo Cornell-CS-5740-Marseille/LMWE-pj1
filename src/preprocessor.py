@@ -3,22 +3,25 @@ import re
 
 
 class preprocessor:
-    def __init__(self, file1, file2, method):
+    def __init__(self, file1, method, file2 = None):
         self.unknown_symbol = "<u>"
         self.unknown_threshold = 1
         self.start_symbol = "<s>"  # start of document
         self.end_symbol = "</s>"  # end of document
         self.method = method
         f1 = open(file1)
-        f2 = open(file2)
-        self.data_processor(f1,f2,self.method)
+        if file2 != None:
+            f2 = open(file2)
+        else:
+            f2 = None
+        self.data = self.data_processor(f1,self.method,f2)
         #with open(file) as f:
         #    self.data = self.data_processor(f)
 
     #fhandle1 : train/test data
     #fhandle2 : 5000 frequently used words
     #method: unknown word processing: 0: 1->u or 1: 5000->u
-    def data_processor(self, fhandle1, fhandle2 = None, method):
+    def data_processor(self, fhandle1, method, fhandle2 = None):
         ls = list()
         result = list()
         unknown_list = dict()
@@ -42,7 +45,7 @@ class preprocessor:
             line_new = line_new.replace('\' ','\'')
             line_new = line_new.replace('”','\"')
             line_new = line_new.replace('“','\"')
-            line_new = line_new.replace('\n', self.end_symbol)
+            line_new = line_new.replace('\n', ' '+self.end_symbol)
             # ls[0] = ls[0].capitalize()
             # for i in range(len(ls)-1):
             #     if ls[i] == '.':
@@ -54,6 +57,8 @@ class preprocessor:
             result.append(self.start_symbol)
             tmp.append(self.start_symbol)           #used for storing every line as a list element
             dictionary.add(self.start_symbol)
+            dictionary.add(self.end_symbol)
+            dictionary.add(self.unknown_symbol)
             for x in range(len(ls)):
                 word = ls[x]
                 new_word = word.rstrip('?:!.,;')
@@ -84,7 +89,7 @@ class preprocessor:
                         tmp.append(new_word_list)
                 else:
                     print("Error: Method not found")
-                result_line.append(tmp)
+            result_line.append(tmp)
         unknown_list = {k:v for k,v in unknown_list.iteritems() if v==self.unknown_threshold}
         replacement = map(lambda x: self.unknown_symbol if x in unknown_list else x, result)
         for i in range(len(result_line)):

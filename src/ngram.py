@@ -74,12 +74,12 @@ class Ngrams:
                     self.count_table[key][target] += k
                 else:
                     self.count_table[key][target] = k
-        print self.count_table
+        ###print self.count_table
         self.convert_count_to_prob()
         return self.count_table
 
     def dist_table_smoothed_kneser_ney(self, logs):
-        words = [logs[0]]
+        words = [logs[3]]
         n = self.n
         for log in words:
             for i in range(0, len(log) - n + 1):
@@ -118,7 +118,7 @@ class Ngrams:
         for key in self.count_table:
             self.smoothed_count_table[key] = {}
             count_dict = self.count_table[key]
-            for target in logs[2]:  # yeah i know, this is super slow OMG
+            for target in logs[2]:
                 if target != self.all_count_symbol:
                     count = 0
                     if target in count_dict:
@@ -142,11 +142,15 @@ class Ngrams:
             if target in self.count_table[key]:
                 return self.count_table[key][target]
             else:
-                print "no target:", target
+                ###print "no target:", target
                 return self.count_table[key][self.unknown_symbol]
         else:
-            print "no key:", key
-            return self.count_table[key][self.unknown_symbol]
+            ###print "no key:", key
+            if target in self.count_table[self.unknown_symbol]:
+                return self.count_table[self.unknown_symbol][target]
+            else:
+                ###print "no target:", target
+                return self.count_table[self.unknown_symbol][self.unknown_symbol]
 
     def unsmoothed_nGram(self, sentence):
         sentence = sentence.split(" ")
@@ -183,7 +187,7 @@ class Ngrams:
                     else:
                         lower += probability
             else:
-                print "no key:", key
+                ###print "no key:", key
                 return sentence
         return sentence
 
@@ -208,23 +212,21 @@ class Ngrams:
 # test cases
 # corpus = ["<s> I am Sam </s>".split(" "), "<s> Sam I am </s>".split(" "), "<s> I do not like green eggs and ham </s>".split(" ")]
 # ngram = Ngrams({"n": 2, "threshold": 100})
-# print ngram.dist_table(corpus)
-# print ngram.sentence('I')
+# ###print ngram.dist_table(corpus)
+# ###print ngram.sentence('I')
 
-data = preprocessor("../Assignment1_resources/train/trump.txt","../Assignment1_resources/5000.txt",0).data
-print data[0]
-#ngram = Ngrams({"n": 2, "threshold": 100})
+# data = preprocessor("../Assignment1_resources/train/trump.txt",0).data
+# ngram = Ngrams({"n": 2, "threshold": 100})
 # ngram.dist_table_unsmoothed(data[0])
 # ngram.dist_table_smoothed_kneser_ney(data[0])
-#ngram.dist_table_add_one_smooth(data, 1)
-# print data[1]
-# print data[2]
-# print data[3]
-#print ngram.count_table
-#test = preprocessor("../Assignment1_resources/development/trump.txt").data[0]
+# ngram.dist_table_add_one_smooth(data, 1)
+# ###print data[1]
+# ###print data[2]
+# ###print data[3]
+# ###print ngram.count_table
+# test = preprocessor("../Assignment1_resources/development/trump.txt").data[0]
 # test = preprocessor("../Assignment1_resources/development/small_test.txt").data[0]
-#print ngram.perplexity(test)
-
+# ###print ngram.perplexity(test)
 
 # ngram.save_model("model/obama")
-# print ngram.sentence('i')
+# ###print ngram.sentence('i')
