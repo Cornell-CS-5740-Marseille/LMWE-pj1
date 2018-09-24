@@ -1,6 +1,6 @@
 import csv
 from collections import defaultdict
-
+import re
 import numpy as np
 import gensim
 from glove import Glove
@@ -62,15 +62,16 @@ class glove(word_embedding_model):
         result = np.divide(vector, num)
         return result
 
-
+    # (5177, 13618, 8441)
     def analogy_test(self, test_file):
         correct, total, missed = 0, 0, 0
         with open(test_file, 'r') as file:
             for line in file:
-                words = map(lambda x: x.lower(), line.strip().split(" "))
+                words = map(lambda x: x.lower(), re.findall(r"[\w.]+", line))
                 vector = self.glove.word_vectors[self.glove.dictionary[words[1]]] + self.glove.word_vectors[self.glove.dictionary[words[2]]] - self.glove.word_vectors[self.glove.dictionary[words[0]]]
                 total += 1
                 similar_words = self.glove._similarity_query(vector.tolist(), 5)
+                print total, similar_words[0][0], words[3]
                 if similar_words[0][0] == words[3]:
                     correct += 1
                 else:
@@ -85,22 +86,28 @@ class word2vec(word_embedding_model):
         self.word2vec = gensim.models.KeyedVectors.load_word2vec_format(trained_file, binary=True)
         self.dim = 300
         self.trainedVector = {}
+        self.dictionary = self.word2vec.wv
 
+    # (3715, 13618, 9903)
     def analogy_test(self, test_file):
         correct, total, missed = 0, 0, 0
         with open(test_file, 'r') as file:
             for line in file:
-                words = map(lambda x: x.lower(), line.strip().split(" "))
+                words = map(lambda x: x.lower(), re.findall(r"[\w.]+", line))
                 total += 1
-                similar_words = self.word2vec.most_similar(positive=[words[1], words[2]], negative=[words[0]])
-                if similar_words[0][0] == words[3]:
-                    correct += 1
+                if words[1] in self.dictionary.vocab and words[0] in self.dictionary.vocab and words[2] in self.dictionary.vocab:
+                    similar_words = self.word2vec.most_similar(positive=[words[1], words[2]], negative=[words[0]])
+                    print total, similar_words[0][0], words[3]
+                    if similar_words[0][0] == words[3]:
+                        correct += 1
+                    else:
+                        missed += 1
                 else:
                     missed += 1
 
         return correct, total, missed
 
-    def fit(self, X, y = 0):
+    def fit(self, X, y):
         tfidf = TfidfVectorizer(analyzer=lambda x: x)
         tfidf.fit(X)
         # if a word was never seen - it must be at least as infrequent
@@ -137,16 +144,16 @@ class word2vec(word_embedding_model):
 # test_data = preprocessor("../Assignment1_resources/test/test.txt", 0).data[4]
 # glove.testData(test_data, "speech_classification_glove.txt")
 # analogy test
-# glove.analogy_test("../Assignment1_resources/analogy_test.txt")
+# print glove.analogy_test("../Assignment1_resources/analogy_test.txt")
 
 
 word2vec_model = word2vec("../Assignment1_resources/trained_data/GoogleNews-vectors-negative300.bin")
-trump_data = preprocessor("../Assignment1_resources/train/trump.txt", 0).data[4]
-obama_data = preprocessor("../Assignment1_resources/train/obama.txt", 0).data[4]
-word2vec_model.trainSpeechVector(trump_data, "trump")
-word2vec_model.trainSpeechVector(obama_data, "obama")
-test_data = preprocessor("../Assignment1_resources/test/test.txt", 0).data[4]
-word2vec_model.testData(test_data, "speech_classification_word2vec.txt")
+# trump_data = preprocessor("../Assignment1_resources/train/trump.txt", 0).data[4]
+# obama_data = preprocessor("../Assignment1_resources/train/obama.txt", 0).data[4]
+# word2vec_model.trainSpeechVector(trump_data, "trump")
+# word2vec_model.trainSpeechVector(obama_data, "obama")
+# test_data = preprocessor("../Assignment1_resources/test/test.txt", 0).data[4]
+# word2vec_model.testData(test_data, "speech_classification_word2vec.txt")
 
 # analogy test
-# print word2vec_model.analogy_test("../Assignment1_resources/analogy_test.txt")
+print word2vec_model.analogy_test("../Assignment1_resources/analogy_test.txt")
