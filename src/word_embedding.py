@@ -4,6 +4,7 @@ import re
 import numpy as np
 import gensim
 from glove import Glove
+from gensim.models import Word2Vec
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -79,6 +80,12 @@ class glove(word_embedding_model):
 
         return correct, total, missed
 
+    def similar_words(self, word, topK):
+        vector = self.glove.word_vectors[self.glove.dictionary[word]]
+        ms = self.glove._similarity_query(vector.tolist(), topK)
+        for x in ms:
+            print x[0], x[1]
+
 
 
 class word2vec(word_embedding_model):
@@ -87,6 +94,8 @@ class word2vec(word_embedding_model):
         self.dim = 300
         self.trainedVector = {}
         self.dictionary = self.word2vec.wv
+        # self.word2vec = Word2Vec.load_word2vec_format(trained_file)
+
 
     # (3715, 13618, 9903)
     def analogy_test(self, test_file):
@@ -131,6 +140,11 @@ class word2vec(word_embedding_model):
         final_vector = np.divide(vector, num)
         return final_vector
 
+    def similar_words(self, word, topK):
+        ms = self.word2vec.most_similar(positive=[word], topn=topK)
+        for x in ms:
+            print x[0], x[1]
+
 
 
 
@@ -144,7 +158,10 @@ class word2vec(word_embedding_model):
 # test_data = preprocessor("../Assignment1_resources/test/test.txt", 0).data[4]
 # glove.testData(test_data, "speech_classification_glove.txt")
 # analogy test
+# print glove.analogy_test("../Assignment1_resources/analogy_test_nationality.txt")
+# print glove.analogy_test("../Assignment1_resources/analogy_test_past.txt")
 # print glove.analogy_test("../Assignment1_resources/analogy_test.txt")
+# glove.similar_words("increase", 11)
 
 
 word2vec_model = word2vec("../Assignment1_resources/trained_data/GoogleNews-vectors-negative300.bin")
@@ -156,4 +173,7 @@ word2vec_model = word2vec("../Assignment1_resources/trained_data/GoogleNews-vect
 # word2vec_model.testData(test_data, "speech_classification_word2vec.txt")
 
 # analogy test
-print word2vec_model.analogy_test("../Assignment1_resources/analogy_test.txt")
+# print word2vec_model.analogy_test("../Assignment1_resources/analogy_test.txt")
+# print word2vec_model.analogy_test("../Assignment1_resources/analogy_test_past.txt")
+# print word2vec_model.analogy_test("../Assignment1_resources/analogy_test_nationality.txt")
+word2vec_model.similar_words("increase", 10)
